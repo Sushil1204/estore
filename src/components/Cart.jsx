@@ -1,18 +1,24 @@
-import React, { useState } from "react";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {  increase, decrease, removeProduct } from "../redux/reducers/cartSlice";
+import { Link } from "react-router-dom";
 
 const Cart = () => {
-  const [show, setShow] = useState(false);
-  const [count, setCount] = useState(0);
+  const { cartItems } = useSelector((state) => state.cart);
+  const dispatch = useDispatch();
+  console.log(cartItems);
 
-  const addCount = () => {
-    setCount((prev) => prev + 1);
+  const calculateTotal = () => {
+    let total = 0;
+    cartItems.forEach((item) => {
+      total += item.amount * item.price;
+    });
+    return total;
   };
 
-  const minusCount = () => {
-    if (count > 0) {
-      setCount((prev) => prev - 1);
-    }
-  };
+  if (cartItems.length <= 0) {
+    return <div className="empty">Your Bag is Empty...</div>;
+  }
   return (
     <div
       className="w-full h-full bg-black bg-opacity-90 top-0 overflow-y-auto overflow-x-hidden fixed sticky-0"
@@ -29,7 +35,6 @@ const Cart = () => {
           >
             <div
               className="flex items-center text-gray-500 hover:text-gray-600 cursor-pointer"
-              onClick={() => setShow(!show)}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -46,78 +51,68 @@ const Cart = () => {
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                 <polyline points="15 6 9 12 15 18" />
               </svg>
-              <p className="text-sm pl-2 leading-none">Back</p>
+              <Link to="/">
+                <p className="text-sm pl-2 leading-none">Back</p>
+                </Link>
             </div>
             <p className="text-5xl font-black leading-10 text-gray-800 pt-3">
               Bag
             </p>
-            <div className="md:flex items-center mt-14 py-8 border-t border-gray-200">
-              <div className="w-1/4">
-                <img
-                  src="https://cdn.tuk.dev/assets/templates/e-commerce-kit/bestSeller3.png"
-                  alt
-                  className="w-full h-full object-center object-cover"
-                />
-              </div>
-              <div className="md:pl-3 md:w-3/4">
-                <p className="text-xs leading-3 text-gray-800 md:pt-0 pt-4">
-                  RF293
-                </p>
-                <div className="flex items-center justify-between w-full pt-1">
-                  <p className="text-base font-black leading-none text-gray-800">
-                    North wolf bag
+            {cartItems?.map((item) => (
+              <div className="md:flex items-center mt-14 py-8 border-t border-gray-200" key={item.id}>
+                <div className="w-1/4">
+                  <img
+                    src={item.image}
+                    alt
+                    className="w-full h-full object-center object-cover"
+                  />
+                </div>
+                <div className="md:pl-3 md:w-3/4">
+                  <p className="text-xs leading-3 text-gray-800 md:pt-0 pt-4">
+                    RF293
                   </p>
-                  <div className="my-5">
-                    <div className="flex flex-row justify-between">
-                      <div className="flex">
-                        <span
-                          onClick={minusCount}
-                          className="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 cursor-pointer border border-gray-300 border-r-0 w-7 h-7 flex items-center justify-center pb-1"
-                        >
-                          -
-                        </span>
-                        <input
-                          id="counter"
-                          aria-label="input"
-                          className="border border-gray-300 h-full text-center w-14 pb-1"
-                          type="text"
-                          value={count}
-                          onChange={(e) => e.target.value}
-                        />
-                        <span
-                          onClick={addCount}
-                          className="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 cursor-pointer border border-gray-300 border-l-0 w-7 h-7 flex items-center justify-center pb-1 "
-                        >
-                          +
-                        </span>
+                  <div className="flex items-center justify-between w-full pt-1">
+                    <p className="text-base font-black leading-none text-gray-800">
+                      {item.title}
+                    </p>
+                    <div className="my-5">
+                      <div className="flex flex-row justify-between">
+                        <div className="flex">
+                          <span
+                             onClick={() => {
+                              if(item.amount <= 0) {
+                                dispatch(removeProduct(item.id));
+                              }
+                              dispatch(decrease(item.id));
+                            }}
+                            className="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 cursor-pointer border border-gray-300 border-r-0 w-7 h-7 flex items-center justify-center pb-1"
+                          >
+                            -
+                          </span>
+                          <span className="border border-gray-300 h-full text-center w-14 pb-1">{item.amount}</span>
+                          <span
+                             onClick={() => dispatch(increase(item.id))}
+                            className="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 cursor-pointer border border-gray-300 border-l-0 w-7 h-7 flex items-center justify-center pb-1 "
+                          >
+                            +
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                <p className="text-xs leading-3 text-gray-600 pt-2">
-                  Height: 10 inches
-                </p>
-                <p className="text-xs leading-3 text-gray-600 py-4">
-                  Color: Black
-                </p>
-                <p className="w-96 text-xs leading-3 text-gray-600">
-                  Composition: 100% calf leather
-                </p>
-                <div className="flex items-center justify-between pt-5 pr-6">
-                  <div className="flex itemms-center">
-                    <p className="text-xs leading-3 underline text-gray-800 cursor-pointer">
-                      Add to favorites
-                    </p>
-                    <p className="text-xs leading-3 underline text-red-500 pl-5 cursor-pointer">
-                      Remove
+                  <div className="flex items-center justify-between pt-5 pr-6">
+                    <div className="flex itemms-center">
+                      <p className="text-xs leading-3 underline text-red-500 pl-5 cursor-pointer" onClick={() => dispatch(removeProduct(item.id))}>
+                        Remove
+                      </p>
+                    </div>
+                    <p className="text-base font-black leading-none text-gray-800">
+                      $ {item.price}
                     </p>
                   </div>
-                  <p className="text-base font-black leading-none text-gray-800">
-                    $9,000
-                  </p>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
           <div className="xl:w-1/2 md:w-1/3 xl:w-1/4 w-full bg-gray-100 h-full">
             <div className="flex flex-col md:h-screen px-14 py-20 justify-between overflow-y-auto">
@@ -129,24 +124,14 @@ const Cart = () => {
                   <p className="text-base leading-none text-gray-800">
                     Subtotal
                   </p>
-                  <p className="text-base leading-none text-gray-800">$9,000</p>
-                </div>
-                <div className="flex items-center justify-between pt-5">
-                  <p className="text-base leading-none text-gray-800">
-                    Shipping
-                  </p>
-                  <p className="text-base leading-none text-gray-800">$30</p>
-                </div>
-                <div className="flex items-center justify-between pt-5">
-                  <p className="text-base leading-none text-gray-800">Tax</p>
-                  <p className="text-base leading-none text-gray-800">$35</p>
+                  <p className="text-base leading-none text-gray-800">$ {calculateTotal().toString()}</p>
                 </div>
               </div>
               <div>
                 <div className="flex items-center pb-6 justify-between lg:pt-5 pt-20">
                   <p className="text-2xl leading-normal text-gray-800">Total</p>
                   <p className="text-2xl font-bold leading-normal text-right text-gray-800">
-                    $10,240
+                    $ Subtotal: ${calculateTotal().toString()}
                   </p>
                 </div>
                 <button

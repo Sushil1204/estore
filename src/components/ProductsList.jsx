@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { getAllProducts } from "../redux/reducers/productSlice";
+import { addToCart } from "../redux/reducers/cartSlice";
 
 const ProductsList = () => {
-  const [data, setData] = useState([]);
+  const dispatch = useDispatch();
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    axios({
-      method: "GET",
-      url: "https://fakestoreapi.com/products",
-    })
-      .then((res) => {
-        console.log(res.data);
-        setData(res.data);
-      })
-      .catch((e) => console.log(e))
-      .finally(() => setLoading(false));
-  }, []);
+    dispatch(getAllProducts());
+  }, [dispatch]);
+  const { isLoading, products } = useSelector((state) => state.products);
+
+  if (isLoading) {
+    return (
+      <div className="loading">
+        <h2>LOADING.....</h2>
+      </div>
+    );
+  }
 
   return (
     <div className=" 2xl:container 2xl:mx-auto">
@@ -26,38 +29,59 @@ const ProductsList = () => {
         </p>
       </div>
       <div className="py-6 lg:px-20 md:px-6 px-4">
+        <input
+          className=" font-normal text-2xl leading-3 text-gray-600 py-3 px-5 outline-0"
+          placeholder="Search"
+          type="text"
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <hr className=" w-full bg-gray-200 my-6" />
         <div className="grid lg:grid-cols-4 sm:grid-cols-2 grid-cols-1 lg:gap-y-12 lg:gap-x-8 sm:gap-y-10 sm:gap-x-6 gap-y-6 lg:mt-12 mt-10">
-          {data.map((product) => (
-            <div key={product.id} >
-              <div className=" relative group">
-                <div className=" flex justify-center items-center opacity-0 bg-gradient-to-t from-gray-800 via-gray-800 to-opacity-30 group-hover:opacity-50 absolute top-0 left-0 h-full w-full"></div>
-                <img
-                  className="w-50 h-80 mx-auto"
-                  src={product.image}
-                  alt={product.title}
-                />
-                <div className=" absolute bottom-0 p-8 w-full opacity-0 group-hover:opacity-100">
-                  <button className=" font-medium text-base leading-4 text-gray-800 bg-white py-3 w-full">
-                    Add to bag
-                          </button>
-                          <Link to={`/product/${product.id}`}>
-                  <button className=" bg-transparent font-medium text-base leading-4 border-2 border-white py-3 w-full mt-2 text-white">
-                    Get Details
-                              </button>
-                              </Link>
+          {products &&
+            products
+              .filter((value) => {
+                if (search === "") {
+                  return value;
+                } else if (
+                  value.title.toLowerCase().includes(search.toLowerCase())
+                ) {
+                  return value;
+                }
+              })
+              .map((product) => (
+                <div key={product.id}>
+                  <div className=" relative group">
+                    <div className=" flex justify-center items-center opacity-0 bg-gradient-to-t from-gray-800 via-gray-800 to-opacity-30 group-hover:opacity-50 absolute top-0 left-0 h-full w-full"></div>
+                    <img
+                      className="w-50 h-80 mx-auto"
+                      src={product.image}
+                      alt={product.title}
+                    />
+                    <div className=" absolute bottom-0 p-8 w-full opacity-0 group-hover:opacity-100">
+                      <button
+                        className=" font-medium text-base leading-4 text-gray-800 bg-white py-3 w-full"
+                        onClick={() => dispatch(addToCart(product))}
+                      >
+                        Add to bag
+                      </button>
+                      <Link to={`/product/${product.id}`}>
+                        <button className=" bg-transparent font-medium text-base leading-4 border-2 border-white py-3 w-full mt-2 text-white">
+                          Get Details
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                  <p className=" font-normal text-xl leading-5 text-gray-800 md:mt-6 mt-4">
+                    {product.title.substr(0, 30)}
+                  </p>
+                  <p className=" font-semibold text-xl leading-5 text-gray-800 mt-4">
+                    $ {product.price}
+                  </p>
+                  <p className=" font-normal text-base leading-4 text-gray-600 mt-4">
+                    {`Category: ${product.category}`}
+                  </p>
                 </div>
-              </div>
-              <p className=" font-normal text-xl leading-5 text-gray-800 md:mt-6 mt-4">
-                      {product.title}
-              </p>
-              <p className=" font-semibold text-xl leading-5 text-gray-800 mt-4">
-                      $ {product.price}
-              </p>
-              <p className=" font-normal text-base leading-4 text-gray-600 mt-4">
-                      {`Category: ${product.category}`}
-              </p>
-            </div>
-          ))}
+              ))}
         </div>
 
         <div className=" flex justify-center items-center">

@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Navbar from "./components/Navbar";
 import ProductsList from "./components/ProductsList";
 import Product from "./components/Product";
 import { Routes, Route } from "react-router-dom";
 import Cart from "./components/Cart";
+import { useDispatch } from "react-redux";
+import { getAllProducts } from "./redux/reducers/productSlice";
 
 const App = () => {
   return (
